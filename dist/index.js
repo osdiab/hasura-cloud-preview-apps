@@ -11140,7 +11140,7 @@ const getJobStatus = (jobId, context) => __awaiter(void 0, void 0, void 0, funct
             }
         });
         if (!resp.jobs_by_pk) {
-            throw new Error('could not find the GitHub job; the associated deployment was terminated');
+            throw new Error(`get job errored: ${JSON.stringify({ resp, jobId, context }, null, 2)}`);
         }
         const tasksCount = (_a = resp.jobs_by_pk) === null || _a === void 0 ? void 0 : _a.tasks.length;
         if (tasksCount && tasksCount > 0) {
