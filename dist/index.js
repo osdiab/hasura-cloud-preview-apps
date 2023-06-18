@@ -11140,7 +11140,7 @@ const getJobStatus = (jobId, context) => __awaiter(void 0, void 0, void 0, funct
             }
         });
         if (!resp.jobs_by_pk) {
-            throw new Error(`get job errored: ${JSON.stringify({ resp, jobId, context }, null, 2)}`);
+            return null;
         }
         const tasksCount = (_a = resp.jobs_by_pk) === null || _a === void 0 ? void 0 : _a.tasks.length;
         if (tasksCount && tasksCount > 0) {
@@ -11169,11 +11169,27 @@ const getJobStatus = (jobId, context) => __awaiter(void 0, void 0, void 0, funct
         throw e;
     }
 });
+const GET_JOB_STATUS_RETRIES = 3;
 const getRealtimeLogs = (jobId, context, retryCount = 0) => __awaiter(void 0, void 0, void 0, function* () {
     if (retryCount > 0) {
         yield utils_1.waitFor(2000);
     }
-    const jobStatus = yield getJobStatus(jobId, context);
+    let jobStatus = null;
+    let getJobStatusTries = 1;
+    while (!jobStatus) {
+        jobStatus = yield getJobStatus(jobId, context);
+        if (jobStatus) {
+            break;
+        }
+        if (getJobStatusTries > GET_JOB_STATUS_RETRIES) {
+            throw new Error("get job failed to return a value");
+        }
+        else {
+            context.logger.log("Job status for jobId not present, retrying...");
+        }
+        getJobStatusTries += 1;
+        yield utils_1.waitFor(2000);
+    }
     if (jobStatus === 'success') {
         return 'success';
     }

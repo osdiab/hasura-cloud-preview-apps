@@ -54,7 +54,7 @@ const getJobStatus = async (jobId: string, context: Context) => {
       }
     })
     if (!resp.jobs_by_pk) {
-      throw new Error(`get job errored: ${JSON.stringify({resp, jobId, context}, null, 2)}`);
+      return null;
     }
     const tasksCount = resp.jobs_by_pk?.tasks.length
     if (tasksCount && tasksCount > 0) {
@@ -90,15 +90,30 @@ const getJobStatus = async (jobId: string, context: Context) => {
   }
 }
 
+const GET_JOB_STATUS_RETRIES = 3;
 export const getRealtimeLogs = async (
   jobId: string,
   context: Context,
   retryCount = 0
 ) => {
   if (retryCount > 0) {
-    await waitFor(2000)
+    await waitFor(2000);
   }
-  const jobStatus = await getJobStatus(jobId, context)
+  let jobStatus: string | null = null;
+  let getJobStatusTries = 1;
+  while (!jobStatus) {
+    jobStatus = await getJobStatus(jobId, context);
+    if (jobStatus) {
+      break;
+    }
+    if (getJobStatusTries > GET_JOB_STATUS_RETRIES) {
+      throw new Error("get job failed to return a value");
+    } else {
+      context.logger.log("Job status for jobId not present, retrying...");
+    }
+    getJobStatusTries += 1;
+    await waitFor(2000);
+  }
   if (jobStatus === 'success') {
     return 'success'
   }
