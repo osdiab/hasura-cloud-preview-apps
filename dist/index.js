@@ -11104,7 +11104,7 @@ const getTaskName = (taskName) => {
         case 'check-healthz':
             return 'Checking Project Health';
         default:
-            return taskName;
+            return `unknown task: ${taskName}`;
     }
 };
 const getTaskStatus = (status) => {
@@ -11113,6 +11113,7 @@ const getTaskStatus = (status) => {
     }
     return status;
 };
+const taskStartTimes = {};
 const getJobStatus = (jobId, context) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
@@ -11149,7 +11150,12 @@ const getJobStatus = (jobId, context) => __awaiter(void 0, void 0, void 0, funct
             const taskEventsCount = latestTask === null || latestTask === void 0 ? void 0 : latestTask.task_events.length;
             if (latestTask && taskEventsCount && taskEventsCount > 0) {
                 const latestTaskEvent = latestTask.task_events[taskEventsCount - 1];
-                context.logger.log(`${getTaskName(latestTask.name)}: ${getTaskStatus(latestTaskEvent === null || latestTaskEvent === void 0 ? void 0 : latestTaskEvent.event_type)}`, false);
+                const taskName = getTaskName(latestTask.name);
+                const taskNameKey = `${latestTask.name}: ${taskName}`;
+                if (!(taskNameKey in taskStartTimes)) {
+                    taskStartTimes[taskNameKey] = new Date();
+                }
+                context.logger.log(`${taskName}: ${getTaskStatus(latestTaskEvent === null || latestTaskEvent === void 0 ? void 0 : latestTaskEvent.event_type)}`, false);
                 if (latestTaskEvent === null || latestTaskEvent === void 0 ? void 0 : latestTaskEvent.github_detail) {
                     context.logger.log(latestTaskEvent === null || latestTaskEvent === void 0 ? void 0 : latestTaskEvent.github_detail, false);
                 }
@@ -11191,9 +11197,11 @@ const getRealtimeLogs = (jobId, context, retryCount = 0) => __awaiter(void 0, vo
         yield utils_1.waitFor(2000);
     }
     if (jobStatus === 'success') {
+        context.logger.log(JSON.stringify({ taskStartTimes, completionTime: new Date() }, null, 2));
         return 'success';
     }
     if (jobStatus === 'failed') {
+        context.logger.log(JSON.stringify({ taskStartTimes, completionTime: new Date() }, null, 2));
         return 'failed';
     }
     return exports.getRealtimeLogs(jobId, context, retryCount + 1);

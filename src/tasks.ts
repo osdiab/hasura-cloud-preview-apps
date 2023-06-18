@@ -17,7 +17,7 @@ const getTaskName = (taskName?: string) => {
     case 'check-healthz':
       return 'Checking Project Health'
     default:
-      return taskName;
+      return `unknown task: ${taskName}`;
   }
 }
 
@@ -28,6 +28,7 @@ const getTaskStatus = (status: string) => {
   return status
 }
 
+const taskStartTimes: Record<string, Date> = {};
 const getJobStatus = async (jobId: string, context: Context) => {
   try {
     const resp = await context.client.query<JobDetails, {jobId: string}>({
@@ -63,8 +64,15 @@ const getJobStatus = async (jobId: string, context: Context) => {
       const taskEventsCount = latestTask?.task_events.length
       if (latestTask && taskEventsCount && taskEventsCount > 0) {
         const latestTaskEvent = latestTask.task_events[taskEventsCount - 1]
+
+        const taskName = getTaskName(latestTask.name);
+        const taskNameKey = `${latestTask.name}: ${taskName}`;
+        if (!(taskNameKey in taskStartTimes)) {
+          taskStartTimes[taskNameKey] = new Date();
+        }
+
         context.logger.log(
-          `${getTaskName(latestTask.name)}: ${getTaskStatus(
+          `${taskName}: ${getTaskStatus(
             latestTaskEvent?.event_type
           )}`,
           false
@@ -115,9 +123,11 @@ export const getRealtimeLogs = async (
     await waitFor(2000);
   }
   if (jobStatus === 'success') {
+    context.logger.log(JSON.stringify({taskStartTimes, completionTime: new Date()}, null, 2));
     return 'success'
   }
   if (jobStatus === 'failed') {
+    context.logger.log(JSON.stringify({taskStartTimes, completionTime: new Date()}, null, 2));
     return 'failed'
   }
   return getRealtimeLogs(jobId, context, retryCount + 1)
