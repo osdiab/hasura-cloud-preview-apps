@@ -58,6 +58,7 @@ const getJobStatus = async (jobId: string, context: Context) => {
     }
     const tasksCount = resp.jobs_by_pk?.tasks.length
     if (tasksCount && tasksCount > 0) {
+      context.logger.log(JSON.stringify(resp.jobs_by_pk, null, 2));
       const latestTask = resp.jobs_by_pk?.tasks[tasksCount - 1]
       const taskEventsCount = latestTask?.task_events.length
       if (latestTask && taskEventsCount && taskEventsCount > 0) {

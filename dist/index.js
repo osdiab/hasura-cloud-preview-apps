@@ -11144,6 +11144,7 @@ const getJobStatus = (jobId, context) => __awaiter(void 0, void 0, void 0, funct
         }
         const tasksCount = (_a = resp.jobs_by_pk) === null || _a === void 0 ? void 0 : _a.tasks.length;
         if (tasksCount && tasksCount > 0) {
+            context.logger.log(JSON.stringify(resp.jobs_by_pk, null, 2));
             const latestTask = (_b = resp.jobs_by_pk) === null || _b === void 0 ? void 0 : _b.tasks[tasksCount - 1];
             const taskEventsCount = latestTask === null || latestTask === void 0 ? void 0 : latestTask.task_events.length;
             if (latestTask && taskEventsCount && taskEventsCount > 0) {
