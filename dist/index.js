@@ -11175,7 +11175,7 @@ const getJobStatus = (jobId, context) => __awaiter(void 0, void 0, void 0, funct
         throw e;
     }
 });
-const GET_JOB_STATUS_RETRIES = 3;
+const GET_JOB_STATUS_RETRIES = 10;
 const getRealtimeLogs = (jobId, context, retryCount = 0) => __awaiter(void 0, void 0, void 0, function* () {
     if (retryCount > 0) {
         yield utils_1.waitFor(2000);

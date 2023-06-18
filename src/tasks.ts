@@ -98,7 +98,7 @@ const getJobStatus = async (jobId: string, context: Context) => {
   }
 }
 
-const GET_JOB_STATUS_RETRIES = 3;
+const GET_JOB_STATUS_RETRIES = 10;
 export const getRealtimeLogs = async (
   jobId: string,
   context: Context,
