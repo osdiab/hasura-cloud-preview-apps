@@ -11104,7 +11104,7 @@ const getTaskName = (taskName) => {
         case 'check-healthz':
             return 'Checking Project Health';
         default:
-            return null;
+            return taskName;
     }
 };
 const getTaskStatus = (status) => {

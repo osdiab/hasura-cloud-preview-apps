@@ -17,7 +17,7 @@ const getTaskName = (taskName?: string) => {
     case 'check-healthz':
       return 'Checking Project Health'
     default:
-      return null
+      return taskName;
   }
 }
 
